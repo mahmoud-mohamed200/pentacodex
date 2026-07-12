@@ -266,6 +266,12 @@ function Index() {
               </div>
             )}
           </div>
+          <Link
+            to="/admin"
+            className="rounded-full px-4 py-2 text-sm font-medium text-white/50 transition-colors hover:text-[color:var(--cyan)]"
+          >
+            Admin Portal
+          </Link>
         </nav>
 
         <a
