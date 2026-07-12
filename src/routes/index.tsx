@@ -144,7 +144,24 @@ function Index() {
   const [prefilledName, setPrefilledName] = useState<string>("");
   const [prefilledEmail, setPrefilledEmail] = useState<string>("");
   const [prefilledPhone, setPrefilledPhone] = useState<string>("");
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("adminUser");
+      if (saved) {
+        setIsAdminLoggedIn(true);
+      }
+    }
+  }, []);
+
+  const handleAdminLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("adminUser");
+    }
+    setIsAdminLoggedIn(false);
+  };
 
   useEffect(() => {
     if (order) {
@@ -281,22 +298,42 @@ function Index() {
               </div>
             )}
           </div>
-          <Link
-            to="/admin"
-            className="rounded-full px-4 py-2 text-sm font-medium text-white/50 transition-colors hover:text-[color:var(--cyan)]"
-          >
-            Admin Portal
-          </Link>
         </nav>
 
-        <a
-          href="#contact"
-          onClick={(e) => { e.preventDefault(); setContactPreset(undefined); setContactOpen(true); setServicesOpen(false); setProductsOpen(false); }}
-          className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground backdrop-blur-md transition-all hover:border-[color:var(--cyan)]/60 hover:bg-white/10 hover:shadow-[0_0_30px_-5px_rgba(0,242,254,0.5)]"
-        >
-          Contact us
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </a>
+        <div className="flex items-center gap-3">
+          {isAdminLoggedIn ? (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/admin"
+                className="group inline-flex items-center gap-1.5 rounded-full border border-[color:var(--cyan)]/30 bg-[color:var(--cyan)]/10 px-4.5 py-2.5 text-xs font-semibold text-white transition-all hover:bg-[color:var(--cyan)]/25 hover:shadow-[0_0_20px_-4px_rgba(0,242,254,0.5)]"
+              >
+                Dashboard
+              </Link>
+              <button
+                onClick={handleAdminLogout}
+                className="rounded-full border border-red-500/20 bg-red-500/10 px-4.5 py-2.5 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition-all"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/admin"
+              className="group inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-4.5 py-2.5 text-xs font-medium text-white/70 backdrop-blur-md transition-all hover:border-[color:var(--cyan)]/50 hover:bg-white/10 hover:text-white"
+            >
+              Admin Login
+            </Link>
+          )}
+
+          <a
+            href="#contact"
+            onClick={(e) => { e.preventDefault(); setContactPreset(undefined); setContactOpen(true); setServicesOpen(false); setProductsOpen(false); }}
+            className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground backdrop-blur-md transition-all hover:border-[color:var(--cyan)]/60 hover:bg-white/10 hover:shadow-[0_0_30px_-5px_rgba(0,242,254,0.5)]"
+          >
+            Contact us
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </a>
+        </div>
       </header>
 
       {/* Services mega-menu */}
