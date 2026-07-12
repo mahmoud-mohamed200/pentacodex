@@ -127,6 +127,18 @@ export function SalesChatbot({ onClose, onRedirectToForm, onOpenSchedule }: Sale
         }
       }
     }
+
+    if (typeof window !== "undefined" && (!name || !email)) {
+      const saved = localStorage.getItem("clientUser");
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          if (!name && user.name) name = user.name;
+          if (!email && user.email) email = user.email;
+        } catch (e) {}
+      }
+    }
+
     return { name, email, phone };
   };
 

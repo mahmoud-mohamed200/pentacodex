@@ -158,6 +158,21 @@ function Index() {
       setContactOpen(true);
     }
   }, [order]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("clientUser");
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          if (user.name) setPrefilledName(user.name);
+          if (user.email) setPrefilledEmail(user.email);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  }, []);
   const navServicesRef = useRef<HTMLButtonElement | null>(null);
   const productsMenuRef = useRef<HTMLDivElement | null>(null);
   const productsTriggerRef = useRef<HTMLButtonElement | null>(null);
