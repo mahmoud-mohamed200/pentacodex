@@ -43,6 +43,16 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"inquiries" | "bookings">("inquiries");
 
+  // Check localStorage for existing admin session on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("adminUser");
+      if (saved) {
+        setAuthorized(true);
+      }
+    }
+  }, []);
+
   // Database-driven admin login
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +61,9 @@ function AdminPage() {
     try {
       const res = await adminLoginAction({ data: { username, password } });
       if (res.success) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("adminUser", JSON.stringify({ username: res.username, role: res.role }));
+        }
         setAuthorized(true);
       } else {
         setAuthError(res.error || "Invalid username or password.");
@@ -60,6 +73,15 @@ function AdminPage() {
     } finally {
       setLoadingAuth(false);
     }
+  };
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("adminUser");
+    }
+    setAuthorized(false);
+    setUsername("");
+    setPassword("");
   };
 
   useEffect(() => {
@@ -183,24 +205,33 @@ function AdminPage() {
               <p className="text-xs text-muted-foreground">Manage lead inquiries and discovery bookings.</p>
             </div>
           </div>
-          <div className="flex rounded-xl border border-white/10 bg-white/[0.02] p-1">
+          <div className="flex items-center gap-4">
+            <div className="flex rounded-xl border border-white/10 bg-white/[0.02] p-1">
+              <button
+                onClick={() => setActiveTab("inquiries")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                  activeTab === "inquiries" ? "bg-[color:var(--cyan)]/25 text-white" : "text-white/60 hover:text-white"
+                }`}
+              >
+                <Mail className="h-3.5 w-3.5" />
+                Inquiries ({inquiries.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("bookings")}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
+                  activeTab === "bookings" ? "bg-[color:var(--cyan)]/25 text-white" : "text-white/60 hover:text-white"
+                }`}
+              >
+                <Calendar className="h-3.5 w-3.5" />
+                Bookings ({bookings.length})
+              </button>
+            </div>
+
             <button
-              onClick={() => setActiveTab("inquiries")}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
-                activeTab === "inquiries" ? "bg-[color:var(--cyan)]/25 text-white" : "text-white/60 hover:text-white"
-              }`}
+              onClick={handleLogout}
+              className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 hover:border-red-500/40 transition-all"
             >
-              <Mail className="h-3.5 w-3.5" />
-              Inquiries ({inquiries.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("bookings")}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all ${
-                activeTab === "bookings" ? "bg-[color:var(--cyan)]/25 text-white" : "text-white/60 hover:text-white"
-              }`}
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              Bookings ({bookings.length})
+              Logout
             </button>
           </div>
         </div>
