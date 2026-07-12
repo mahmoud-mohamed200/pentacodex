@@ -170,3 +170,27 @@ export const getChatbotSummaryAction = createServerFn({ method: "POST" })
       throw e;
     }
   });
+
+export const adminLoginAction = createServerFn({ method: "POST" })
+  .validator((data: { username: string; password: string }) => data)
+  .handler(async ({ data }) => {
+    try {
+      const response = await fetch(`${PYTHON_API_URL}/api/admin/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || "Authentication failed.");
+      }
+
+      return await response.json();
+    } catch (e: any) {
+      console.error("Action error logging in:", e);
+      return { success: false, error: e.message || "Invalid credentials." };
+    }
+  });

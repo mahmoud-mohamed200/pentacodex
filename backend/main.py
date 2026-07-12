@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 import schemas
-from mongo import inquiries_collection, bookings_collection
+from mongo import inquiries_collection, bookings_collection, admins_collection
 
 load_dotenv()
 
@@ -40,6 +40,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+def seed_default_admin():
+    admin_count = admins_collection.count_documents({})
+    if admin_count == 0:
+        default_admins = [
+            {"username": "admin", "password": "admin123", "role": "Super Admin"},
+            {"username": "manager", "password": "manager123", "role": "Client Manager"},
+            {"username": "sales", "password": "sales123", "role": "Sales Representative"}
+        ]
+        admins_collection.insert_many(default_admins)
+        print("✅ Seeded default admin accounts in database: admin, manager, sales")
 
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -188,6 +200,24 @@ def read_bookings():
             createdAt=doc["created_at"]
         ))
     return results
+
+@app.post("/api/admin/login", response_model=schemas.AdminLoginResponse)
+def admin_login(payload: schemas.AdminLoginRequest):
+    admin = admins_collection.find_one({
+        "username": payload.username,
+        "password": payload.password
+    })
+    if not admin:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
+        )
+    return schemas.AdminLoginResponse(
+        success=True,
+        message="Login successful",
+        username=admin["username"],
+        role=admin.get("role", "Admin")
+    )
 
 
 # --- Professional System Prompt (shared by all AI providers) ---

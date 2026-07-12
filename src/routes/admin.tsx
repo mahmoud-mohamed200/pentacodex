@@ -4,6 +4,7 @@ import {
   getInquiriesAction,
   getBookingsAction,
   updateInquiryStatusAction,
+  adminLoginAction,
 } from "../lib/actions";
 import {
   ArrowLeft,
@@ -32,7 +33,9 @@ export const Route = createFileRoute("/admin")({
 
 function AdminPage() {
   const [authorized, setAuthorized] = useState(false);
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loadingAuth, setLoadingAuth] = useState(false);
   const [authError, setAuthError] = useState("");
 
   const [inquiries, setInquiries] = useState<any[]>([]);
@@ -40,14 +43,22 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"inquiries" | "bookings">("inquiries");
 
-  // Simple passcode security
-  const handleAuth = (e: React.FormEvent) => {
+  // Database-driven admin login
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === "admin123") {
-      setAuthorized(true);
-      setAuthError("");
-    } else {
-      setAuthError("Invalid admin access credentials.");
+    setLoadingAuth(true);
+    setAuthError("");
+    try {
+      const res = await adminLoginAction({ data: { username, password } });
+      if (res.success) {
+        setAuthorized(true);
+      } else {
+        setAuthError(res.error || "Invalid username or password.");
+      }
+    } catch (err: any) {
+      setAuthError("Could not connect to authentication services.");
+    } finally {
+      setLoadingAuth(false);
     }
   };
 
@@ -106,11 +117,27 @@ function AdminPage() {
 
           <form onSubmit={handleAuth} className="mt-6 space-y-4">
             <div>
+              <label className="mb-1 block text-left text-xs font-semibold uppercase tracking-wider text-white/60" htmlFor="username">Username</label>
               <input
+                id="username"
+                type="text"
+                required
+                disabled={loadingAuth}
+                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-[color:var(--cyan)] focus:bg-white/[0.06] disabled:opacity-50"
+                placeholder="e.g., admin or manager"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-left text-xs font-semibold uppercase tracking-wider text-white/60" htmlFor="password">Password</label>
+              <input
+                id="password"
                 type="password"
                 required
-                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-center text-white outline-none focus:border-[color:var(--cyan)] focus:bg-white/[0.06]"
-                placeholder="Passcode (use admin123)"
+                disabled={loadingAuth}
+                className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white outline-none focus:border-[color:var(--cyan)] focus:bg-white/[0.06] disabled:opacity-50"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -124,9 +151,10 @@ function AdminPage() {
 
             <button
               type="submit"
-              className="w-full group relative inline-flex items-center justify-center gap-2 rounded-xl border border-[color:var(--cyan)] bg-[color:var(--cyan)]/10 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[color:var(--cyan)]/20 hover:shadow-[0_0_30px_-5px_rgba(0,242,254,0.7)]"
+              disabled={loadingAuth}
+              className="w-full group relative inline-flex items-center justify-center gap-2 rounded-xl border border-[color:var(--cyan)] bg-[color:var(--cyan)]/10 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[color:var(--cyan)]/20 hover:shadow-[0_0_30px_-5px_rgba(0,242,254,0.7)] disabled:opacity-50"
             >
-              <span>Verify Access</span>
+              <span>{loadingAuth ? "Verifying..." : "Verify Access"}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </button>
           </form>

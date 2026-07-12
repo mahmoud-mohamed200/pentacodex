@@ -10,6 +10,7 @@ db = client[DB_NAME]
 # Collections
 inquiries_collection = db["inquiries"]
 bookings_collection = db["bookings"]
+admins_collection = db["admins"]
 
 def get_mongo_db():
     return db

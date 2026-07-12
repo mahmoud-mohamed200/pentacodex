@@ -69,3 +69,13 @@ class ChatbotSummaryRequest(BaseModel):
 
 class ChatbotSummaryResponse(BaseModel):
     summary: str
+
+class AdminLoginRequest(BaseModel):
+    username: str
+    password: str
+
+class AdminLoginResponse(BaseModel):
+    success: bool
+    message: str
+    username: Optional[str] = None
+    role: Optional[str] = None
